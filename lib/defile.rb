@@ -47,8 +47,5 @@ module Defile
 end
 
 Defile.configure do |config|
-  # FIXME: what is a sane default here? This is a little less than a
-  # memory page, which seemed like a good default, is there a better
-  # one?
-  config.read_chunk_size = 3000
+  config.read_chunk_size = 50000
 end

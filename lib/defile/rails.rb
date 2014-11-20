@@ -2,13 +2,24 @@ require "defile"
 
 module Defile
   module Controller
+    include ActionController::Live
+
     def show
       file = Defile.backends.fetch(params[:backend_name]).get(params[:id])
 
-      options = { disposition: "inline" }
-      options[:type] = Mime::Type.lookup_by_extension(params[:format]).to_s if params[:format]
+      response.headers['Content-Disposition'] = "inline"
+      response.headers['Content-Length'] = file.size
+      if params[:format]
+        response.headers['Content-Type'] = Mime::Type.lookup_by_extension(params[:format]).to_s
+      end
 
-      send_data file.read, options
+      until file.eof?
+        result = file.read(Defile.read_chunk_size)
+        response.stream.write(result)
+      end
+    ensure
+      response.stream.close
+      file.close
     end
   end
 
