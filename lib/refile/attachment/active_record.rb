@@ -12,6 +12,7 @@ module Refile
         attacher = "#{name}_attacher"
 
         validate do
+          send(attacher).valid?
           errors = send(attacher).errors
           self.errors.add(name, *errors) unless errors.empty?
         end

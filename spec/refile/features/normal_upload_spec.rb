@@ -34,6 +34,19 @@ feature "Normal HTTP Post file uploads" do
     expect(page).to have_content("Image has an invalid file format")
   end
 
+  scenario "Fail to upload a file that has the wrong format then submit" do
+    visit "/normal/posts/new"
+    fill_in "Title", with: "A cool post"
+    attach_file "Image", path("hello.txt")
+    click_button "Create"
+
+    expect(page).to have_selector(".field_with_errors")
+    expect(page).to have_content("Image has an invalid file format")
+    click_button "Create"
+    expect(page).to have_selector("h1", text: "A cool post")
+    expect(page).not_to have_link("Document")
+  end
+
   # FIXME: the only reason this is js:true is because the rack_test driver
   # doesn't submit file+metadata correctly.
   scenario "Upload a file via form redisplay", js: true do

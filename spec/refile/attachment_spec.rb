@@ -247,6 +247,31 @@ describe Refile::Attachment do
     end
   end
 
+  describe ":name_attacher.valid?" do
+    let(:options) { { type: :image, raise_errors: false } }
+
+    it "returns true if no file is attached" do
+      expect(instance.document_attacher.valid?).to be_truthy
+    end
+
+    it "returns false and if valid file is attached" do
+      file = Refile::FileDouble.new("hello", content_type: "image/png")
+
+      instance.document = file
+
+      expect(instance.document_attacher.valid?).to be_truthy
+    end
+
+    it "returns false and sets errors if invalid file is attached" do
+      file = Refile::FileDouble.new("hello", content_type: "text/plain")
+
+      instance.document = file
+
+      expect(instance.document_attacher.valid?).to be_falsy
+      expect(instance.document_attacher.errors).to eq([:invalid_content_type])
+    end
+  end
+
   describe ":name_attacher.error" do
     let(:options) { { cache: :limited_cache, raise_errors: false } }
 
