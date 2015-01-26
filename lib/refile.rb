@@ -254,10 +254,22 @@ module Refile
 
       uri = URI(host.to_s)
       uri.path = ::File.join("", *prefix, backend_name, *args.map(&:to_s), file.id.to_s, filename)
+      uri.query = URI.encode_www_form("sha" => sha(uri.path)) if secret_token
 
       uri.to_s
     end
 
+    # Generate a signature for a given path concatenated with the configured secret token.
+    #
+    # Returns nil if no secret token is configured
+    #
+    # @example
+    #   sha('/store/f5f2e4/document.pdf')
+    #
+    def sha(path)
+      return nil unless secret_token
+      Digest::SHA256.hexdigest(path + secret_token)[0, 16]
+    end
   end
 
   require "refile/version"

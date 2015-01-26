@@ -40,10 +40,6 @@ module Refile
       %w[OPTIONS POST].include?(env["REQUEST_METHOD"])
     end
 
-    def encrypt(str)
-      Digest::SHA256.hexdigest(str)[0,16]
-    end
-
     def logger
       Refile.logger
     end

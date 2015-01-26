@@ -91,6 +91,14 @@ RSpec.describe Refile do
       it "adds a format" do
         expect(Refile.attachment_url(instance, :document, format: "png")).to eq("/cache/#{id}/document.png")
       end
+
+      it "generates signed url" do
+        allow(Refile).to receive(:secret_token).and_return("abcd1234")
+        path = "/cache/#{id}/document"
+
+        query = URI.encode_www_form("sha" => Digest::SHA256.hexdigest(path + "abcd1234")[0, 16])
+        expect(Refile.attachment_url(instance, :document)).to eq("#{path}?#{query}")
+      end
     end
 
     context "with file with content type" do
@@ -117,6 +125,21 @@ RSpec.describe Refile do
       it "returns nil" do
         expect(Refile.attachment_url(instance, :document)).to be_nil
       end
+    end
+  end
+
+  describe ".sha" do
+    it "returns digest of given path and secret token" do
+      allow(Refile).to receive(:secret_token).and_return("abcd1234")
+
+      path = "/store/f5f2e4/document.pdf"
+      expect(Refile.sha(path)).to eq(Digest::SHA256.hexdigest(path + "abcd1234")[0, 16])
+    end
+
+    it "returns nil without secret token" do
+      allow(Refile).to receive(:secret_token).and_return(nil)
+
+      expect(Refile.sha("/store/f5f2e4/document.pdf")).to be_nil
     end
   end
 end
