@@ -90,6 +90,37 @@ describe Refile::App do
       expect(last_response.content_type).to eq("text/plain;charset=utf-8")
       expect(last_response.body).to eq("not found")
     end
+
+    context "signed" do
+      before do
+        allow(Refile).to receive(:secret_token).and_return("abcd1234")
+      end
+
+      it "returns a 403 for unsigned get requests" do
+        file = Refile.store.upload(StringIO.new("hello"))
+
+        query = URI.encode_www_form("sha" => "badsignature")
+
+        get "/store/#{file.id}/hello?#{query}"
+
+        expect(last_response.status).to eq(403)
+        expect(last_response.content_type).to eq("text/plain;charset=utf-8")
+        expect(last_response.body).to eq("forbidden")
+      end
+
+      it "returns a 200 for signed get requests" do
+        file = Refile.store.upload(StringIO.new("hello"))
+
+        path = "/store/#{file.id}/hello"
+
+        query = URI.encode_www_form("sha" => Digest::SHA256.hexdigest(path + "abcd1234")[0, 16])
+
+        get "#{path}?#{query}"
+
+        expect(last_response.status).to eq(200)
+        expect(last_response.body).to eq("hello")
+      end
+    end
   end
 
   describe "GET /:backend/:processor/:id/:filename" do
@@ -151,6 +182,16 @@ describe Refile::App do
     end
 
     it "uploads a file for direct upload backends" do
+      file = Rack::Test::UploadedFile.new(path("hello.txt"))
+      post "/cache", file: file
+
+      expect(last_response.status).to eq(200)
+      expect(JSON.parse(last_response.body)["id"]).not_to be_empty
+    end
+
+    it "does not require signed request param to upload" do
+      allow(Refile).to receive(:secret_token).and_return("abcd1234")
+
       file = Rack::Test::UploadedFile.new(path("hello.txt"))
       post "/cache", file: file
 

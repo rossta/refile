@@ -74,6 +74,13 @@ module Refile
     # @return [Boolean]
     attr_accessor :automount
 
+    # Value for generating signed attachment urls to protect from DoS
+    #
+    # Leave unset to generate unsigned attachment urls
+    #
+    # @return [String]
+    attr_accessor :secret_token
+
     # A global registry of backends.
     #
     # @return [Hash{String => Backend}]
@@ -247,8 +254,10 @@ module Refile
 
       uri = URI(host.to_s)
       uri.path = ::File.join("", *prefix, backend_name, *args.map(&:to_s), file.id.to_s, filename)
+
       uri.to_s
     end
+
   end
 
   require "refile/version"
@@ -260,6 +269,7 @@ module Refile
   require "refile/random_hasher"
   require "refile/file"
   require "refile/custom_logger"
+  require "refile/security"
   require "refile/app"
   require "refile/backend/file_system"
 end
