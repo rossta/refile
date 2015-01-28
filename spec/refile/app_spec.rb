@@ -104,7 +104,6 @@ describe Refile::App do
         get "/store/#{file.id}/hello?#{query}"
 
         expect(last_response.status).to eq(403)
-        expect(last_response.content_type).to eq("text/plain;charset=utf-8")
         expect(last_response.body).to eq("forbidden")
       end
 
@@ -113,7 +112,7 @@ describe Refile::App do
 
         path = "/store/#{file.id}/hello"
 
-        query = URI.encode_www_form("sha" => Digest::SHA256.hexdigest(path + "abcd1234")[0, 16])
+        query = URI.encode_www_form("sha" => Refile.sha(path))
 
         get "#{path}?#{query}"
 

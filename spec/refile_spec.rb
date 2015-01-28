@@ -96,7 +96,8 @@ RSpec.describe Refile do
         allow(Refile).to receive(:secret_token).and_return("abcd1234")
         path = "/cache/#{id}/document"
 
-        query = URI.encode_www_form("sha" => Digest::SHA256.hexdigest(path + "abcd1234")[0, 16])
+        token = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha1'), "abcd1234", path)
+        query = URI.encode_www_form("sha" => token)
         expect(Refile.attachment_url(instance, :document)).to eq("#{path}?#{query}")
       end
     end
@@ -128,12 +129,13 @@ RSpec.describe Refile do
     end
   end
 
-  describe ".sha" do
+  describe ".token" do
     it "returns digest of given path and secret token" do
       allow(Refile).to receive(:secret_token).and_return("abcd1234")
 
       path = "/store/f5f2e4/document.pdf"
-      expect(Refile.sha(path)).to eq(Digest::SHA256.hexdigest(path + "abcd1234")[0, 16])
+      token = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha1'), "abcd1234", path)
+      expect(Refile.sha(path)).to eq(token)
     end
 
     it "returns nil without secret token" do

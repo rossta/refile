@@ -22,7 +22,6 @@ module Refile
       set :logging, false
       set :dump_errors, false
       use CustomLogger, "Refile::App", proc { Refile.logger }
-      use Security
     end
 
     before do
@@ -70,6 +69,11 @@ module Refile
       "not found"
     end
 
+    error 403 do
+      content_type :text
+      "forbidden"
+    end
+
     error do |error_thrown|
       log_error("Error -> #{error_thrown}")
       error_thrown.backtrace.each do |line|
@@ -86,6 +90,8 @@ module Refile
     end
 
     def stream_file(file)
+      halt 403 unless verified?
+
       expires Refile.content_max_age, :public, :must_revalidate
 
       if file.respond_to?(:path)
@@ -130,5 +136,12 @@ module Refile
     def log_error(message)
       logger.error "#{self.class.name}: #{message}"
     end
+
+    def verified?
+      return true unless Refile.secret_token
+
+      params["sha"] == Refile.sha(request.path)
+    end
+
   end
 end

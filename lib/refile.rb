@@ -268,7 +268,7 @@ module Refile
     #
     def sha(path)
       return nil unless secret_token
-      Digest::SHA256.hexdigest(path + secret_token)[0, 16]
+      OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha1'), secret_token, path)
     end
   end
 
@@ -281,7 +281,6 @@ module Refile
   require "refile/random_hasher"
   require "refile/file"
   require "refile/custom_logger"
-  require "refile/security"
   require "refile/app"
   require "refile/backend/file_system"
 end
