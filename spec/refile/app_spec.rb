@@ -112,7 +112,7 @@ describe Refile::App do
 
         path = "/store/#{file.id}/hello"
 
-        query = URI.encode_www_form("sha" => Refile.sha(path))
+        query = URI.encode_www_form("sha" => Refile.token(path))
 
         get "#{path}?#{query}"
 

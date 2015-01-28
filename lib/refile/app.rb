@@ -140,7 +140,7 @@ module Refile
     def verified?
       return true unless Refile.secret_token
 
-      params["sha"] == Refile.sha(request.path)
+      params["sha"] == Refile.token(request.path)
     end
 
   end

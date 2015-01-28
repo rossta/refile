@@ -254,7 +254,7 @@ module Refile
 
       uri = URI(host.to_s)
       uri.path = ::File.join("", *prefix, backend_name, *args.map(&:to_s), file.id.to_s, filename)
-      uri.query = URI.encode_www_form("sha" => sha(uri.path)) if secret_token
+      uri.query = URI.encode_www_form("sha" => token(uri.path)) if secret_token
 
       uri.to_s
     end
@@ -264,9 +264,9 @@ module Refile
     # Returns nil if no secret token is configured
     #
     # @example
-    #   sha('/store/f5f2e4/document.pdf')
+    #   token('/store/f5f2e4/document.pdf')
     #
-    def sha(path)
+    def token(path)
       return nil unless secret_token
       OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha1'), secret_token, path)
     end

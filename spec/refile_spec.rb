@@ -135,13 +135,13 @@ RSpec.describe Refile do
 
       path = "/store/f5f2e4/document.pdf"
       token = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha1'), "abcd1234", path)
-      expect(Refile.sha(path)).to eq(token)
+      expect(Refile.token(path)).to eq(token)
     end
 
     it "returns nil without secret token" do
       allow(Refile).to receive(:secret_token).and_return(nil)
 
-      expect(Refile.sha("/store/f5f2e4/document.pdf")).to be_nil
+      expect(Refile.token("/store/f5f2e4/document.pdf")).to be_nil
     end
   end
 end
