@@ -253,8 +253,8 @@ module Refile
       filename << "." << format.to_s if format
 
       uri = URI(host.to_s)
-      uri.path = ::File.join("", *prefix, backend_name, *args.map(&:to_s), file.id.to_s, filename)
-      uri.query = URI.encode_www_form("sha" => token(uri.path)) if secret_token
+      base_path = ::File.join("", backend_name, *args.map(&:to_s), file.id.to_s, filename)
+      uri.path = ::File.join("", *prefix, token(base_path), base_path)
 
       uri.to_s
     end
@@ -267,7 +267,6 @@ module Refile
     #   token('/store/f5f2e4/document.pdf')
     #
     def token(path)
-      return nil unless secret_token
       OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha1'), secret_token, path)
     end
   end
@@ -286,6 +285,7 @@ module Refile
 end
 
 Refile.configure do |config|
+  config.secret_token  = SecureRandom.hex(16)
   config.direct_upload = ["cache"]
   config.allow_origin = "*"
   config.logger = Logger.new(STDOUT)

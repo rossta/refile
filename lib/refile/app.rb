@@ -32,23 +32,23 @@ module Refile
       end
     end
 
-    get "/:backend/:id/:filename" do
+    get "/:token/:backend/:id/:filename" do
       stream_file file
     end
 
-    get "/:backend/:processor/:id/:file_basename.:extension" do
+    get "/:token/:backend/:processor/:id/:file_basename.:extension" do
       stream_file processor.call(file, format: params[:extension])
     end
 
-    get "/:backend/:processor/:id/:filename" do
+    get "/:token/:backend/:processor/:id/:filename" do
       stream_file processor.call(file)
     end
 
-    get "/:backend/:processor/*/:id/:file_basename.:extension" do
+    get "/:token/:backend/:processor/*/:id/:file_basename.:extension" do
       stream_file processor.call(file, *params[:splat].first.split("/"), format: params[:extension])
     end
 
-    get "/:backend/:processor/*/:id/:filename" do
+    get "/:token/:backend/:processor/*/:id/:filename" do
       stream_file processor.call(file, *params[:splat].first.split("/"))
     end
 
@@ -138,9 +138,11 @@ module Refile
     end
 
     def verified?
-      return true unless Refile.secret_token
+      base_path = request.path.gsub(::File.join(request.script_name, params[:token]), '')
+      expected = Digest::SHA1.hexdigest(Refile.token(base_path))
+      actual = Digest::SHA1.hexdigest(params[:token])
 
-      params["sha"] == Refile.token(request.path)
+      expected == actual
     end
 
   end
