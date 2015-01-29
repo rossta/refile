@@ -20,6 +20,14 @@ module Refile
       Refile.logger = Rails.logger
       Refile.app = Refile::App.new
     end
+
+    initializer "refile.secret_key" do |app|
+      if app.respond_to?(:secrets)
+        Refile.secret_key ||= app.secrets.secret_key_base
+      elsif app.config.respond_to?(:secret_key_base)
+        Refile.secret_key ||= app.config.secret_key_base
+      end
+    end
   end
 end
 
