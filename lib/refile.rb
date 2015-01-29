@@ -267,11 +267,18 @@ module Refile
     #   token('/store/f5f2e4/document.pdf')
     #
     def token(path)
-      if secret_token.nil?
-        Refile.logger.warn "Warning! You should configure Refile.secret_token to protect your application against unverified requests."
-        return "token"
-      end
+      raise_no_secret_token if secret_token.nil?
+
       OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha1"), secret_token, path)
+    end
+
+    def raise_no_secret_token
+      raise <<-ERROR
+Refile.secret_token was not set. Please add the following to your Refile configuration and restart your application:
+
+  config.secret_token = '#{SecureRandom.hex(64)}'
+
+      ERROR
     end
   end
 
